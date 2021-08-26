@@ -27,5 +27,3 @@ type gitOrg struct {
 	gitOrgURL         string
 	gitHubRepos       []gitHubRepo
 }
-
-type
