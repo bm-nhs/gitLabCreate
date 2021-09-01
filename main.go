@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	copy "goGitBack/copy"
@@ -43,24 +44,37 @@ func main() {
 		})
 		if err == nil {
 			target := "./" + repo + "/."
-
-			copy.Copy(payload, target)
 			w, _ := r.Worktree()
 			headRef, _ := r.Head()
 
 			ref := plumbing.NewHashReference(plumbing.ReferenceName(branchTarget(branchName)), headRef.Hash())
 			r.Storer.SetReference(ref)
+			err = w.Checkout(&git.CheckoutOptions{
+				Branch: ref.Name(),
+			})
+			copy.Copy(payload, target)
 			w.Add(payload)
-			w.Commit("Added Payload", &git.CommitOptions{})
-			pushLocation := "origin/" + branchName
-			err := r.Push(&git.PushOptions{
-				RemoteName: pushLocation,
+			w.Commit("Added Payload", &git.CommitOptions{
+				All: true,
+			})
+			r.Push(&git.PushOptions{
+				RemoteName: "origin",
 				Auth: &http.BasicAuth{
 					Username: "2",
 					Password: token,
 				},
 			})
-			println(pushLocation)
+			if err != nil {
+				println(err)
+			}
+		}
+		//make PR
+		prSubject := "test"
+		prRepoOwner :=
+		createPR(&prSubject, prRepoOwner, )
+		//clean up
+		err = os.RemoveAll("./" + repo)
+		if err != nil {
 			println(err)
 		}
 	}
@@ -68,4 +82,31 @@ func main() {
 
 func branchTarget(branchName string)  string {
 	return "refs/heads/" + branchName
+}
+
+func createPR(	prSubject 		*string,
+								prRepoOwner 	*string,
+								prDescription *string,
+								commitBranch 	*string,
+								prRepo 				*string,
+								prBranch 			*string,
+								ctx 					context.Context,
+								client 				*github.Client,
+								) (err error) {
+
+	newPR := &github.NewPullRequest{
+		Title:               prSubject,
+		Head:                commitBranch,
+		Base:                prBranch,
+		Body:                prDescription,
+		MaintainerCanModify: github.Bool(true),
+	}
+
+	pr, _, err := client.PullRequests.Create(ctx, *prRepoOwner, *prRepo, newPR)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("PR created: %s\n", pr.GetHTMLURL())
+	return nil
 }
