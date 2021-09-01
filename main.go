@@ -46,7 +46,10 @@ func main() {
 
 			copy.Copy(payload, target)
 			w, _ := r.Worktree()
-			w.Checkout(&git.CheckoutOptions{Branch: plumbing.ReferenceName(branchName)})
+			headRef, _ := r.Head()
+
+			ref := plumbing.NewHashReference(plumbing.ReferenceName(branchTarget(branchName)), headRef.Hash())
+			r.Storer.SetReference(ref)
 			w.Add(payload)
 			w.Commit("Added Payload", &git.CommitOptions{})
 			r.Push(&git.PushOptions{
@@ -58,4 +61,8 @@ func main() {
 			})
 		}
 	}
+}
+
+func branchTarget(branchName string)  string {
+	return "refs/heads/" + branchName
 }
