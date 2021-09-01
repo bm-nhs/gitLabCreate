@@ -21,5 +21,6 @@ curl --header "PRIVATE-TOKEN: <token>" "https://gitlab.com/api/v4/namespaces"
 
 ##### setting up .env vars for testing
 ``` # github personal access token set to read private repositories and write
-githubPAT = <ghp> 
+githubPAT = <ghp>
+targetOrg = <Org Name Example: nhsllc>
 ```
