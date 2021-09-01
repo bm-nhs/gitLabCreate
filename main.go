@@ -52,13 +52,16 @@ func main() {
 			r.Storer.SetReference(ref)
 			w.Add(payload)
 			w.Commit("Added Payload", &git.CommitOptions{})
-			r.Push(&git.PushOptions{
-				RemoteName: "origin",
+			pushLocation := "origin/" + branchName
+			err := r.Push(&git.PushOptions{
+				RemoteName: pushLocation,
 				Auth: &http.BasicAuth{
 					Username: "2",
 					Password: token,
 				},
 			})
+			println(pushLocation)
+			println(err)
 		}
 	}
 }
