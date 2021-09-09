@@ -1,26 +1,26 @@
 package main
 
 import (
-	"context"
-	"os"
+	"io/ioutil"
+	"strings"
 
-	copy "goGitBack/copy"
-
-	git "github.com/go-git/go-git/v5"
-	plumbing "github.com/go-git/go-git/v5/plumbing"
-	http "github.com/go-git/go-git/v5/plumbing/transport/http"
-	"github.com/google/go-github/v38/github"
 	"github.com/joho/godotenv"
-	"golang.org/x/oauth2"
 )
 
 func main() {
 	godotenv.Load(".env")
-	token := string(os.Getenv("githubPAT"))
-	targetOrg := string(os.Getenv("targetOrg"))
-	payload := string(os.Getenv("payload"))
-	branchName := string(os.Getenv("branchName"))
+	//token := string(os.Getenv("githubPAT"))
+	//targetOrg := string(os.Getenv("targetOrg"))
+	//payload := string(os.Getenv("payload"))
+	//branchName := string(os.Getenv("branchName"))
+	rmFile, _ := ioutil.ReadFile("./.payUnload")
+	rmFiles := strings.Split(string(rmFile), "\n")
 
+
+	for i := 0; i < len(rmFiles); i++ {
+		println(rmFiles[i])
+	}
+	/*
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -58,4 +58,5 @@ func main() {
 			})
 		}
 	}
+	*/
 }
