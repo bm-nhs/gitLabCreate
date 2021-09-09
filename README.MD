@@ -1,4 +1,4 @@
-# GO GIT BACK (NOW)
+gogi (GOGIT)
  https://www.digitalocean.com/community/tutorials/how-to-build-and-install-go-programs
 ## Query GitHub API for all repositories within an organization:
 ```bigquery
