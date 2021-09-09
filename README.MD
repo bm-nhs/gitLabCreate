@@ -1,5 +1,5 @@
 # GO GIT BACK (NOW)
-
+ https://www.digitalocean.com/community/tutorials/how-to-build-and-install-go-programs
 ## Query GitHub API for all repositories within an organization:
 ```bigquery
 curl "https://api.github.com/users/$GHUSER/repos?access_token=$GITHUB_API_TOKEN" | grep -w clone_url
@@ -24,3 +24,12 @@ curl --header "PRIVATE-TOKEN: <token>" "https://gitlab.com/api/v4/namespaces"
 githubPAT = <ghp>
 targetOrg = <Org Name Example: nhsllc>
 ```
+<<<<<<< HEAD
+=======
+### Enviroment Vars
+# export githubPAT = gitHub-auth-token
+# targetOrg = org-alias
+# payload = ./path/to/payload
+# branchName = name-of-new-branch
+#
+>>>>>>> ec76e188c30752040a3833398fd31ff94d759edd
