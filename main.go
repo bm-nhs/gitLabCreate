@@ -30,8 +30,7 @@ func main() {
 	client := github.NewClient(tc)
 	repos, _, _ := client.Repositories.ListByOrg(ctx, targetOrg, nil)
 
-	count := len(repos)
-	for i := 0; i < count; i++ {
+	for i := 0; i < len(repos); i++ {
 		repo := *repos[i].Name
 		url := *repos[i].CloneURL
 		r, err := git.PlainCloneContext(ctx, repo, false, &git.CloneOptions{
