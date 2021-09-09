@@ -24,3 +24,9 @@ curl --header "PRIVATE-TOKEN: <token>" "https://gitlab.com/api/v4/namespaces"
 githubPAT = <ghp>
 targetOrg = <Org Name Example: nhsllc>
 ```
+### Enviroment Vars
+# export githubPAT = gitHub-auth-token
+# targetOrg = org-alias
+# payload = ./path/to/payload
+# branchName = name-of-new-branch
+#
