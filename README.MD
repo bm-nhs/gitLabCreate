@@ -10,6 +10,10 @@ curl "https://api.github.com/users/$GHUSER/repos?access_token=$GITHUB_API_TOKEN"
 curl -H "Content-Type:application/json" https://gitlab.com/api/v4/projects?private_token=TOKEN -d "{ \"name\": \"newRepo\", \"namespace_id\": \"ID\" }"            
 ```
 
+namespace_id = user or org name for GitLab
+name = name of repository
+private_token= gitLab private token
+
 TOKEN = gitLab personal access token
 ###### (User Settings > Access Tokens)
 ID    = gitLab group namespace_id
