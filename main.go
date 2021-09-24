@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"goGitBack/github"
 	copy "goGitBack/copy"
+	"goGitBack/github"
+	"os"
 
 	git "github.com/go-git/go-git/v5"
 	plumbing "github.com/go-git/go-git/v5/plumbing"
@@ -32,7 +32,7 @@ func main() {
 	repositories, _, _ := client.Repositories.ListByOrg(ctx, targetOrg, nil)
 
 	for i := 0; i < len(repositories); i++ {
-			repo := *repositories[i].Name
+		repo := *repositories[i].Name
 		url := *repositories[i].CloneURL
 		r, err := git.PlainCloneContext(ctx, repo, false, &git.CloneOptions{
 			Auth: &http.BasicAuth{
@@ -82,6 +82,6 @@ func main() {
 	}
 }
 
-func branchTarget(branchName string)  string {
+func branchTarget(branchName string) string {
 	return fmt.Sprintf("refs/heads/%s", branchName)
 }
