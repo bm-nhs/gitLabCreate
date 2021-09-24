@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
-
+	"goGitBack/github"
 	copy "goGitBack/copy"
 
 	git "github.com/go-git/go-git/v5"
 	plumbing "github.com/go-git/go-git/v5/plumbing"
 	http "github.com/go-git/go-git/v5/plumbing/transport/http"
-	"github.com/google/go-github/v38/github"
+	gh "github.com/google/go-github/v38/github"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 )
@@ -28,12 +28,12 @@ func main() {
 	)
 
 	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-	repos, _, _ := client.Repositories.ListByOrg(ctx, targetOrg, nil)
+	client := gh.NewClient(tc)
+	repositories, _, _ := client.Repositories.ListByOrg(ctx, targetOrg, nil)
 
-	for i := 0; i < len(repos); i++ {
-		repo := *repos[i].Name
-		url := *repos[i].CloneURL
+	for i := 0; i < len(repositories); i++ {
+			repo := *repositories[i].Name
+		url := *repositories[i].CloneURL
 		r, err := git.PlainCloneContext(ctx, repo, false, &git.CloneOptions{
 			Auth: &http.BasicAuth{
 				Username: "2",
@@ -68,9 +68,12 @@ func main() {
 			}
 		}
 		//make PR
-		prSubject := "test"
-		prRepoOwner :=
-		createPR(&prSubject, prRepoOwner, )
+		payload := github.CreatePullRequestPayload{
+			Title: branchName,
+			Head:  branchName,
+			Base:  "master",
+		}
+		github.PullRequest(payload, targetOrg, repo)
 		//clean up
 		err = os.RemoveAll("./" + repo)
 		if err != nil {
@@ -80,32 +83,5 @@ func main() {
 }
 
 func branchTarget(branchName string)  string {
-	return "refs/heads/" + branchName
-}
-
-func createPR(	prSubject 		*string,
-								prRepoOwner 	*string,
-								prDescription *string,
-								commitBranch 	*string,
-								prRepo 				*string,
-								prBranch 			*string,
-								ctx 					context.Context,
-								client 				*github.Client,
-								) (err error) {
-
-	newPR := &github.NewPullRequest{
-		Title:               prSubject,
-		Head:                commitBranch,
-		Base:                prBranch,
-		Body:                prDescription,
-		MaintainerCanModify: github.Bool(true),
-	}
-
-	pr, _, err := client.PullRequests.Create(ctx, *prRepoOwner, *prRepo, newPR)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("PR created: %s\n", pr.GetHTMLURL())
-	return nil
+	return fmt.Sprintf("refs/heads/%s", branchName)
 }
