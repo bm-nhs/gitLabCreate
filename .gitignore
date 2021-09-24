@@ -1,5 +1,5 @@
-.idea
-*.swp
-goGitBack
 .env
+.idea/
 .payUnload
+goGitBack
+
