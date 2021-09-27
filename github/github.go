@@ -12,17 +12,19 @@ type CreatePullRequestPayload struct {
 	Title string `json:"title"`
 	Head string `json:"head"`
 	Base string `json:"base"`
+	Body string `json:"body"`
 }
 
 // PullRequest creates a GitHub pull request taking the CreatePullRequestPayload and the repo owner and repository name
-func PullRequest(payload CreatePullRequestPayload, owner string, repository string) error {
+func PullRequest(payload CreatePullRequestPayload, owner string, repository string, token string) error {
 	payloadBytes , err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 	body := bytes.NewReader(payloadBytes)
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/pulls", owner, repository)
-	req, err := http.NewRequest("Post", url, body)
+	req, err := http.NewRequest("POST", url, body)
+	req.SetBasicAuth("username", token)
 	req.Header.Set("Content-Type", "application/vnd.github.v3+json")
 	resp, err := http.DefaultClient.Do(req)
 	defer func(Body io.ReadCloser) {
@@ -30,3 +32,4 @@ func PullRequest(payload CreatePullRequestPayload, owner string, repository stri
 	}(resp.Body)
 	return err
 }
+

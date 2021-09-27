@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	copy "goGitBack/copy"
-	"goGitBack/github"
+	copy "gogi/copy"
+	"gogi/github"
 	"os"
 
 	git "github.com/go-git/go-git/v5"
@@ -20,7 +20,8 @@ func main() {
 	token := string(os.Getenv("githubPAT"))
 	targetOrg := string(os.Getenv("targetOrg"))
 	payload := string(os.Getenv("payload"))
-	branchName := string(os.Getenv("branchName"))
+	commitBranch := string(os.Getenv("branchName"))
+	prDescription := string(os.Getenv("prDescription"))
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -46,7 +47,7 @@ func main() {
 			w, _ := r.Worktree()
 			headRef, _ := r.Head()
 
-			ref := plumbing.NewHashReference(plumbing.ReferenceName(branchTarget(branchName)), headRef.Hash())
+			ref := plumbing.NewHashReference(plumbing.ReferenceName(branchTarget(commitBranch)), headRef.Hash())
 			r.Storer.SetReference(ref)
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: ref.Name(),
@@ -64,20 +65,31 @@ func main() {
 				},
 			})
 			if err != nil {
+				println("err with checkout")
+				println(w.Status())
 				println(err)
+				err = nil
 			}
 		}
 		//make PR
 		payload := github.CreatePullRequestPayload{
-			Title: branchName,
-			Head:  branchName,
+			Title: commitBranch,
+			Head:  commitBranch,
 			Base:  *repositories[i].DefaultBranch,
+			Body: prDescription,
 		}
-		github.PullRequest(payload, targetOrg, repoName)
+		err = github.PullRequest(payload, targetOrg, repoName, token)
+		if err != nil {
+			println("error with PR")
+			println(err)
+			err = nil
+		}
 		//clean up
 		err = os.RemoveAll("./" + repoName)
 		if err != nil {
+			println("err with dir cleanup")
 			println(err)
+			err = nil
 		}
 	}
 }
