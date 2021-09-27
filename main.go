@@ -21,6 +21,7 @@ func main() {
 	targetOrg := string(os.Getenv("targetOrg"))
 	payload := string(os.Getenv("payload"))
 	branchName := string(os.Getenv("branchName"))
+	prDescription := string(os.Getenv("prDescription"))
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -72,6 +73,7 @@ func main() {
 			Title: branchName,
 			Head:  branchName,
 			Base:  *repositories[i].DefaultBranch,
+			Body: prDescription,
 		}
 		github.PullRequest(payload, targetOrg, repoName)
 		//clean up
