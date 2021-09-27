@@ -1,4 +1,5 @@
 export githubPAT = gitHub-auth-token
 targetOrg = org-alias
 payload = ./path/to/payload
-branchName = name-of-new-branch
+commitBranch = name-of-new-branch
+prDescription = "Body of the pull request that has it's description"
