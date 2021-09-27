@@ -32,9 +32,9 @@ func main() {
 	repositories, _, _ := client.Repositories.ListByOrg(ctx, targetOrg, nil)
 
 	for i := 0; i < len(repositories); i++ {
-		repo := *repositories[i].Name
+		repoName := *repositories[i].Name
 		url := *repositories[i].CloneURL
-		r, err := git.PlainCloneContext(ctx, repo, false, &git.CloneOptions{
+		r, err := git.PlainCloneContext(ctx, repoName, false, &git.CloneOptions{
 			Auth: &http.BasicAuth{
 				Username: "2",
 				Password: token,
@@ -42,7 +42,7 @@ func main() {
 			URL: url,
 		})
 		if err == nil {
-			target := "./" + repo + "/."
+			target := "./" + repoName + "/."
 			w, _ := r.Worktree()
 			headRef, _ := r.Head()
 
@@ -71,11 +71,11 @@ func main() {
 		payload := github.CreatePullRequestPayload{
 			Title: branchName,
 			Head:  branchName,
-			Base:  "master",
+			Base:  *repositories[i].DefaultBranch,
 		}
-		github.PullRequest(payload, targetOrg, repo)
+		github.PullRequest(payload, targetOrg, repoName)
 		//clean up
-		err = os.RemoveAll("./" + repo)
+		err = os.RemoveAll("./" + repoName)
 		if err != nil {
 			println(err)
 		}
