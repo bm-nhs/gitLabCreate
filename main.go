@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+	// Load env vars
 	godotenv.Load(".env")
 	token := string(os.Getenv("githubPAT"))
 	targetOrg := string(os.Getenv("targetOrg"))
@@ -23,6 +24,7 @@ func main() {
 	branchName := string(os.Getenv("commitBranch"))
 	prDescription := string(os.Getenv("prDescription"))
 
+	// Initialize oauth connection so we can grab a list of all repos in target org
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -31,10 +33,19 @@ func main() {
 	tc := oauth2.NewClient(ctx, ts)
 	client := gh.NewClient(tc)
 	repositories, _, err := client.Repositories.ListByOrg(ctx, targetOrg, nil)
+
 	if err != nil {
 		println("err with getting client")
 		err = nil
 	}
+
+	// For each repo within a target organization or user targeted in GitHub
+	// 1) Clone repo
+	// 2) Create a new Branch
+	// 3) Copy payload folder into project
+	// 4) Commit payload to branch
+	// 5) Push new branch to origin
+	// 6) Create Pull Request to default branch using new branch
 	for i := 0; i < len(repositories); i++ {
 		repoName := *repositories[i].Name
 		url := *repositories[i].CloneURL
