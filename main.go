@@ -20,7 +20,8 @@ func main() {
 	token := string(os.Getenv("githubPAT"))
 	targetOrg := string(os.Getenv("targetOrg"))
 	payload := string(os.Getenv("payload"))
-	branchName := string(os.Getenv("branchName"))
+	branchName := string(os.Getenv("commitBranch"))
+	prDescription := string(os.Getenv("prDescription"))
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -29,8 +30,11 @@ func main() {
 
 	tc := oauth2.NewClient(ctx, ts)
 	client := gh.NewClient(tc)
-	repositories, _, _ := client.Repositories.ListByOrg(ctx, targetOrg, nil)
-
+	repositories, _, err := client.Repositories.ListByOrg(ctx, targetOrg, nil)
+	if err != nil {
+		println("err with getting client")
+		err = nil
+	}
 	for i := 0; i < len(repositories); i++ {
 		repoName := *repositories[i].Name
 		url := *repositories[i].CloneURL
@@ -45,12 +49,19 @@ func main() {
 			target := "./" + repoName + "/."
 			w, _ := r.Worktree()
 			headRef, _ := r.Head()
-
-			ref := plumbing.NewHashReference(plumbing.ReferenceName(branchTarget(branchName)), headRef.Hash())
+			bt := branchTarget(branchName)
+			ref := plumbing.NewHashReference(plumbing.ReferenceName(bt), headRef.Hash())
 			r.Storer.SetReference(ref)
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: ref.Name(),
 			})
+			if err != nil {
+				println(branchTarget(*repositories[i].DefaultBranch))
+				println(*repositories[i].DefaultBranch)
+				println(ref.Name())
+				println("err with checkout")
+				err = nil
+			}
 			copy.Copy(payload, target)
 			w.Add(payload)
 			w.Commit("Added Payload", &git.CommitOptions{
@@ -63,25 +74,24 @@ func main() {
 					Password: token,
 				},
 			})
-			if err != nil {
-				println(err)
-			}
-		}
+		} else { println("error with clone")}
 		//make PR
 		payload := github.CreatePullRequestPayload{
 			Title: branchName,
 			Head:  branchName,
 			Base:  *repositories[i].DefaultBranch,
+			Body: prDescription,
 		}
-		github.PullRequest(payload, targetOrg, repoName)
+		github.PullRequest(payload, targetOrg, repoName, token)
 		//clean up
 		err = os.RemoveAll("./" + repoName)
 		if err != nil {
+			println("error with pull")
 			println(err)
 		}
 	}
 }
 
-func branchTarget(branchName string) string {
-	return fmt.Sprintf("refs/heads/%s", branchName)
+func branchTarget(bn string) string {
+	return fmt.Sprintf("refs/heads/%s", bn)
 }
