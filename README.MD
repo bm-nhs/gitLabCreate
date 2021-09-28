@@ -11,4 +11,5 @@ curl "https://api.github.com/users/$GHUSER/repos?access_token=$GITHUB_API_TOKEN"
 # export githubPAT = gitHub-auth-token
 # targetOrg = org-alias
 # payload = ./path/to/payload
-# branchName = name-of-new-branch
+# commitBranch = name-of-new-branch
+# prDescription = "Body of the PR request. Put something descriptive here"
