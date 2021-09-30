@@ -15,7 +15,7 @@ type CreatePullRequestPayload struct {
 	Body string `json:"body"`
 }
 
-// PullRequest creates a GitHub pull request taking the CreatePullRequestPayload and the repo owner and repository name
+// PullRequest creates a GitHub pull request taking the CreatePullRequestPayload repo owner repository name and GithHub Auth Token
 func PullRequest(payload CreatePullRequestPayload, owner string, repository string, token string) error {
 	payloadBytes , err := json.Marshal(payload)
 	if err != nil {
