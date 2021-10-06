@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	//copy "goGitBack/copy"
+	copy "goGitBack/copy"
 	github "goGitBack/github"
 	"os"
 
@@ -24,8 +24,8 @@ func main() {
 	targetOrg := string(os.Getenv("targetOrg"))
 	prDescription := string(os.Getenv("prDescription"))
 	branchName := string(os.Getenv("commitBranch"))
-
-
+	target := string(os.Getenv("target"))
+	payloadDir := string(os.Getenv("payloadDir"))
 	// Initialize oauth connection so we can grab a list of all repos in target org
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -89,6 +89,11 @@ func main() {
 			r.Storer.SetReference(ref)
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: ref.Name(),
+			})
+			copy.Copy(payloadDir, target)
+			w.Add(payloadDir)
+			w.Commit("Added Payload", &git.CommitOptions{
+				All: true,
 			})
 			r.Push(&git.PushOptions{
 				RemoteName: "origin",
