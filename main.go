@@ -108,7 +108,6 @@ func main() {
 
 			}
 			target := "./" + repoName
-			payloadDirToAdd := target + "/."
 			err = copy.Copy(payloadDir, target)
 			if err != nil {
 				println("failed to copy payload to target repository make sure you are targeting the correct directory")
@@ -116,10 +115,10 @@ func main() {
 				println("target: " + target)
 				err = nil
 			}
-			_, err = w.Add(payloadDirToAdd)
+			_, err = w.Add(".")
 			if err != nil {
 				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
-				println(payloadDirToAdd)
+				println(payloadDir)
 				err = nil
 			}
 			_, err = w.Commit("Added Payload", &git.CommitOptions{
