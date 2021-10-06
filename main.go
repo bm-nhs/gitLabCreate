@@ -108,18 +108,18 @@ func main() {
 
 			}
 			target := "./" + repoName
-			payloadDirToAdd := target + "/" + payloadDir
-			err = copy.Copy(payloadDir, payloadDirToAdd)
+			payloadDirToAdd := target + "/."
+			err = copy.Copy(payloadDir, target)
 			if err != nil {
 				println("failed to copy payload to target repository make sure you are targeting the correct directory")
 				println("Payload Dir: " + payloadDir)
 				println("target: " + target)
 				err = nil
 			}
-			_, err = w.Add(payloadDir)
+			_, err = w.Add(payloadDirToAdd)
 			if err != nil {
 				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
-				println(payloadDir)
+				println(payloadDirToAdd)
 				err = nil
 			}
 			_, err = w.Commit("Added Payload", &git.CommitOptions{
@@ -156,7 +156,7 @@ func main() {
 			println(err)
 		}
 		//clean up
-		err = os.RemoveAll("./" + repoName)
+		//err = os.RemoveAll("./" + repoName)
 		if err != nil {
 			println("error cleaning up directories")
 			println(err)
