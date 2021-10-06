@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	copy "goGitBack/copy"
-	github "goGitBack/github"
+	"goGitBack/copy"
+	"goGitBack/github"
 	"os"
 
-	git "github.com/go-git/go-git/v5"
-	plumbing "github.com/go-git/go-git/v5/plumbing"
-	http "github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	gh "github.com/google/go-github/v38/github"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
@@ -19,13 +19,17 @@ import (
 
 func main() {
 	// Load env vars
-	godotenv.Load(".env")
-	token := string(os.Getenv("githubPAT"))
-	targetOrg := string(os.Getenv("targetOrg"))
-	prDescription := string(os.Getenv("prDescription"))
-	branchName := string(os.Getenv("commitBranch"))
-	target := string(os.Getenv("target"))
-	payloadDir := string(os.Getenv("payloadDir"))
+	err := godotenv.Load(".env")
+	if err != nil {
+		println("failed to load .env file ... review README.MD and configure")
+		err = nil
+	}
+	token := os.Getenv("githubPAT")
+	targetOrg := os.Getenv("targetOrg")
+	prDescription := os.Getenv("prDescription")
+	branchName := os.Getenv("commitBranch")
+	target := os.Getenv("target")
+	payloadDir := os.Getenv("payloadDir")
 	// Initialize oauth connection so we can grab a list of all repos in target org
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -44,7 +48,7 @@ func main() {
 		Type: "all",
 		ListOptions: listOptions,
 	}
-	repositories, githHubResponse, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
+	repositories, gitHubResponse, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
 
 	if err != nil {
 		println("err with getting client")
@@ -52,7 +56,7 @@ func main() {
 	}
 
 	//Paginate through repositories.
-	for i := 1; i < githHubResponse.LastPage; i++ {
+	for i := 1; i < gitHubResponse.LastPage; i++ {
 		listOptions.Page = i
 		repositoryListByOrgOptions.ListOptions = listOptions
 		pagination, _, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
@@ -86,22 +90,39 @@ func main() {
 			headRef, _ := r.Head()
 			bt := branchTarget(branchName)
 			ref := plumbing.NewHashReference(plumbing.ReferenceName(bt), headRef.Hash())
-			r.Storer.SetReference(ref)
+			err = r.Storer.SetReference(ref)
+
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: ref.Name(),
 			})
-			copy.Copy(payloadDir, target)
-			w.Add(payloadDir)
-			w.Commit("Added Payload", &git.CommitOptions{
+			err = copy.Copy(payloadDir, target)
+			if err != nil {
+				println("failed to copy payload to target repository make sure you are targeting the correct directory")
+				err = nil
+			}
+			_, err = w.Add(payloadDir)
+			if err != nil {
+				println("failed to copy payload to target repository make sure you are targeting the correct directory")
+				err = nil
+			}
+			_, err = w.Commit("Added Payload", &git.CommitOptions{
 				All: true,
 			})
-			r.Push(&git.PushOptions{
+			if err != nil {
+				println("Failed to commit targeted payload")
+				err = nil
+			}
+			err = r.Push(&git.PushOptions{
 				RemoteName: "origin",
 				Auth: &http.BasicAuth{
 					Username: "2",
 					Password: token,
 				},
 			})
+			if err != nil {
+				println("Failed to push to target repository")
+				err = nil
+			}
 
 		} else { println("error with clone")}
 
@@ -112,11 +133,15 @@ func main() {
 			Base:  *repositories[i].DefaultBranch,
 			Body: prDescription,
 		}
-		github.PullRequest(payload, targetOrg, repoName, token)
+		err = github.PullRequest(payload, targetOrg, repoName, token)
+		if err != nil {
+			println("error with pull")
+			println(err)
+		}
 		//clean up
 		//err = os.RemoveAll("./" + repoName)
 		if err != nil {
-			println("error with pull")
+			println("error cleaning up directories")
 			println(err)
 		}
 
