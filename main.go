@@ -137,6 +137,7 @@ func main() {
 			})
 			if err != nil {
 				println("Failed to push to target repository")
+				println(err)
 				err = nil
 			}
 
