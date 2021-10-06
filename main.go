@@ -28,7 +28,6 @@ func main() {
 	targetOrg := os.Getenv("targetOrg")
 	prDescription := os.Getenv("prDescription")
 	branchName := os.Getenv("commitBranch")
-	target := os.Getenv("target")
 	payloadDir := os.Getenv("payloadDir")
 	// Initialize oauth connection so we can grab a list of all repos in target org
 	ctx := context.Background()
@@ -61,7 +60,9 @@ func main() {
 		repositoryListByOrgOptions.ListOptions = listOptions
 		pagination, _, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
 		if err != nil {
-			println(err)
+			println("error with GitHub response")
+			println(gitHubResponse)
+			err = nil
 			return
 		}
 		repositories = append(repositories,pagination...)
@@ -84,6 +85,10 @@ func main() {
 			},
 			URL: url,
 		})
+		if err != nil {
+			println("error with Plain Clone")
+			break
+		}
 		if err == nil {
 
 			w, _ := r.Worktree()
@@ -91,18 +96,30 @@ func main() {
 			bt := branchTarget(branchName)
 			ref := plumbing.NewHashReference(plumbing.ReferenceName(bt), headRef.Hash())
 			err = r.Storer.SetReference(ref)
-
+			if err != nil {
+				println("error with setting reference")
+				err = nil
+			}
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: ref.Name(),
 			})
-			err = copy.Copy(payloadDir, target)
+			if err != nil {
+				println(":(")
+
+			}
+			target := "./" + repoName
+			payloadDirToAdd := target + "/" + payloadDir
+			err = copy.Copy(payloadDir, payloadDirToAdd)
 			if err != nil {
 				println("failed to copy payload to target repository make sure you are targeting the correct directory")
+				println("Payload Dir: " + payloadDir)
+				println("target: " + target)
 				err = nil
 			}
 			_, err = w.Add(payloadDir)
 			if err != nil {
-				println("failed to copy payload to target repository make sure you are targeting the correct directory")
+				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
+				println(payloadDir)
 				err = nil
 			}
 			_, err = w.Commit("Added Payload", &git.CommitOptions{
@@ -139,7 +156,7 @@ func main() {
 			println(err)
 		}
 		//clean up
-		//err = os.RemoveAll("./" + repoName)
+		err = os.RemoveAll("./" + repoName)
 		if err != nil {
 			println("error cleaning up directories")
 			println(err)
