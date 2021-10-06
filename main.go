@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	//copy "goGitBack/copy"
+	github "goGitBack/github"
+	"os"
+
 	git "github.com/go-git/go-git/v5"
 	plumbing "github.com/go-git/go-git/v5/plumbing"
 	http "github.com/go-git/go-git/v5/plumbing/transport/http"
 	gh "github.com/google/go-github/v38/github"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
-	"os"
+
 )
 
 func main() {
@@ -18,7 +22,7 @@ func main() {
 	godotenv.Load(".env")
 	token := string(os.Getenv("githubPAT"))
 	targetOrg := string(os.Getenv("targetOrg"))
-
+	prDescription := string(os.Getenv("prDescription"))
 	branchName := string(os.Getenv("commitBranch"))
 
 
@@ -30,11 +34,33 @@ func main() {
 
 	tc := oauth2.NewClient(ctx, ts)
 	client := gh.NewClient(tc)
-	repositories, _, err := client.Repositories.ListByOrg(ctx, targetOrg, nil)
+
+	// Initialize options for pagination
+	var listOptions = gh.ListOptions{
+		Page: 1,
+		PerPage: 100,
+	}
+	repositoryListByOrgOptions := gh.RepositoryListByOrgOptions{
+		Type: "all",
+		ListOptions: listOptions,
+	}
+	repositories, githHubResponse, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
 
 	if err != nil {
 		println("err with getting client")
 		err = nil
+	}
+
+	//Paginate through repositories.
+	for i := 1; i < githHubResponse.LastPage; i++ {
+		listOptions.Page = i
+		repositoryListByOrgOptions.ListOptions = listOptions
+		pagination, _, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
+		if err != nil {
+			println(err)
+			return
+		}
+		repositories = append(repositories,pagination...)
 	}
 
 	// For each repo within a target organization or user targeted in GitHub
@@ -73,8 +99,22 @@ func main() {
 			})
 
 		} else { println("error with clone")}
-		// Clean up
-		err = os.RemoveAll("./" + repoName)
+
+		//make PR
+		payload := github.CreatePullRequestPayload{
+			Title: branchName,
+			Head:  branchName,
+			Base:  *repositories[i].DefaultBranch,
+			Body: prDescription,
+		}
+		github.PullRequest(payload, targetOrg, repoName, token)
+		//clean up
+		//err = os.RemoveAll("./" + repoName)
+		if err != nil {
+			println("error with pull")
+			println(err)
+		}
+
 	}
 }
 
