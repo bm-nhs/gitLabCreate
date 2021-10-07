@@ -178,6 +178,6 @@ func main() {
 	}
 }
 
-func branchTarget(bn string) string {
-	return fmt.Sprintf("refs/heads/%s", bn)
+func branchTarget(branchName string) string {
+	return fmt.Sprintf("refs/heads/%s", branchName)
 }
