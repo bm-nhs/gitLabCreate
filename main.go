@@ -23,11 +23,12 @@ func main() {
 		println("failed to load .env file ... review README.MD and configure")
 		err = nil
 	}
-	token := os.Getenv("githubPAT")
-	targetOrg := os.Getenv("targetOrg")
-	prDescription := os.Getenv("prDescription")
+
 	commitBranch := os.Getenv("commitBranch")
+	targetOrg := os.Getenv("targetOrg")
+	token := os.Getenv("githubPAT")
 	payloadDir := os.Getenv("payloadDir")
+	prDescription := os.Getenv("prDescription")
 
 	// Initialize oauth connection, so we can grab a list of all repos in target org
 	ctx := context.Background()
@@ -101,13 +102,14 @@ func main() {
 			target := "./" + repoName + "/."
 			w, _ := r.Worktree()
 			headRef, _ := r.Head()
-			bt := branchTarget(commitBranch)
-			ref := plumbing.NewHashReference(plumbing.ReferenceName(bt), headRef.Hash())
+
+			ref := plumbing.NewHashReference(plumbing.ReferenceName(branchTarget(commitBranch)), headRef.Hash())
 			err = r.Storer.SetReference(ref)
 			if err != nil {
 				println("error with setting reference")
 				err = nil
 			}
+			//Checkout Branch
 			err = w.Checkout(&git.CheckoutOptions{
 				Branch: ref.Name(),
 			})
@@ -115,7 +117,7 @@ func main() {
 				println(":(")
 
 			}
-
+			//Copy payload in to repo payload >>> target
 			err = copy.Copy(payloadDir, target)
 			if err != nil {
 				println("failed to copy payload to target repository make sure you are targeting the correct directory")
@@ -124,22 +126,12 @@ func main() {
 				err = nil
 			}
 
-			_, err = w.Add(".")
-			if err != nil {
-				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
-				println(payloadDir)
-				err = nil
-			}
-
-			_, err = w.Commit("Added Payload", &git.CommitOptions{
+			w.Add(payloadDir)
+			w.Commit("Added Payload", &git.CommitOptions{
 				All: true,
 			})
-			if err != nil {
-				println("Failed to commit targeted payload")
-				err = nil
-			}
 
-			err = r.Push(&git.PushOptions{
+			r.Push(&git.PushOptions{
 				RemoteName: "origin",
 				Auth: &http.BasicAuth{
 					Username: "2",
@@ -169,7 +161,7 @@ func main() {
 		}
 
 		//clean up
-		//err = os.RemoveAll("./" + repoName)
+		err = os.RemoveAll("./" + repoName)
 		if err != nil {
 			println("error cleaning up directories")
 			println(err)
