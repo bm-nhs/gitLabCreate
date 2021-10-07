@@ -80,7 +80,6 @@ func main() {
 	for i := 0; i < len(repositories); i++ {
 		repoName := *repositories[i].Name
 		url := *repositories[i].CloneURL
-		target := "./" + repoName + "/."
 		r, err := git.PlainCloneContext(ctx, repoName, false, &git.CloneOptions{
 			Auth: &http.BasicAuth{
 				Username: "2",
@@ -99,7 +98,7 @@ func main() {
 		}
 
 		if err == nil {
-
+			target := "./" + repoName + "/."
 			w, _ := r.Worktree()
 			headRef, _ := r.Head()
 			bt := branchTarget(commitBranch)
@@ -148,7 +147,8 @@ func main() {
 				},
 			})
 			if err != nil {
-				println("Failed to push to target repository")
+				println("PUSH FAILED TO TARGET REPO")
+				println(repoName)
 				err = nil
 			}
 
@@ -169,7 +169,7 @@ func main() {
 		}
 
 		//clean up
-		err = os.RemoveAll("./" + repoName)
+		//err = os.RemoveAll("./" + repoName)
 		if err != nil {
 			println("error cleaning up directories")
 			println(err)
