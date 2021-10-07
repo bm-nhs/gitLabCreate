@@ -29,7 +29,7 @@ func main() {
 	prDescription := os.Getenv("prDescription")
 	commitBranch := os.Getenv("commitBranch")
 	payloadDir := os.Getenv("payloadDir")
-	// Initialize oauth connection so we can grab a list of all repos in target org
+	// Initialize oauth connection, so we can grab a list of all repos in target org
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -61,7 +61,6 @@ func main() {
 		pagination, _, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
 		if err != nil {
 			println("error with GitHub response")
-			println(gitHubResponse)
 			err = nil
 			return
 		}
@@ -87,6 +86,7 @@ func main() {
 		})
 		if err != nil {
 			println("error with Plain Clone")
+			println("repoName: " + repoName)
 			break
 		}
 		if err == nil {
@@ -153,10 +153,10 @@ func main() {
 		err = github.PullRequest(payload, targetOrg, repoName, token)
 		if err != nil {
 			println("error with pull")
-			println(err)
+			println("repoName: " + repoName)
 		}
 		//clean up
-		//err = os.RemoveAll("./" + repoName)
+		err = os.RemoveAll("./" + repoName)
 		if err != nil {
 			println("error cleaning up directories")
 			println(err)
