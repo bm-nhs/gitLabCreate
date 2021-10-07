@@ -1,4 +1,4 @@
-module goGitBack
+module gogi 
 
 go 1.17
 
