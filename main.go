@@ -29,6 +29,7 @@ func main() {
 	prDescription := os.Getenv("prDescription")
 	commitBranch := os.Getenv("commitBranch")
 	payloadDir := os.Getenv("payloadDir")
+
 	// Initialize oauth connection, so we can grab a list of all repos in target org
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -77,6 +78,7 @@ func main() {
 	for i := 0; i < len(repositories); i++ {
 		repoName := *repositories[i].Name
 		url := *repositories[i].CloneURL
+		target := "./" + repoName + "/."
 		r, err := git.PlainCloneContext(ctx, repoName, false, &git.CloneOptions{
 			Auth: &http.BasicAuth{
 				Username: "2",
@@ -108,7 +110,6 @@ func main() {
 
 			}
 
-			copy.Copy(payload, target)
 			err = copy.Copy(payloadDir, target)
 			if err != nil {
 				println("failed to copy payload to target repository make sure you are targeting the correct directory")
@@ -117,14 +118,14 @@ func main() {
 				err = nil
 			}
 
-			w.Add(payloadDir)
+			_, err = w.Add(payloadDir)
 			if err != nil {
 				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
 				println(payloadDir)
 				err = nil
 			}
 
-			w.Commit("Added Payload", &git.CommitOptions{
+			_, err = w.Commit("Added Payload", &git.CommitOptions{
 				All: true,
 			})
 			if err != nil {
@@ -132,7 +133,7 @@ func main() {
 				err = nil
 			}
 
-			r.Push(&git.PushOptions{
+			err = r.Push(&git.PushOptions{
 				RemoteName: "origin",
 				Auth: &http.BasicAuth{
 					Username: "2",
