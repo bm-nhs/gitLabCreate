@@ -14,7 +14,6 @@ import (
 	gh "github.com/google/go-github/v38/github"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
-
 )
 
 func main() {
@@ -41,12 +40,15 @@ func main() {
 
 	// Initialize options for pagination
 	var listOptions = gh.ListOptions{
-		Page: 1,
+		Page:    1,
 		PerPage: 100,
 	}
 	repositoryListByOrgOptions := gh.RepositoryListByOrgOptions{
-		Type: "all",
-		ListOptions: listOptions,
+		Type:        "all",
+		ListOptions: gh.ListOptions{
+			Page:    1,
+			PerPage: 100,
+		},
 	}
 	repositories, gitHubResponse, err := client.Repositories.ListByOrg(ctx, targetOrg, &repositoryListByOrgOptions)
 
@@ -65,7 +67,7 @@ func main() {
 			err = nil
 			return
 		}
-		repositories = append(repositories,pagination...)
+		repositories = append(repositories, pagination...)
 	}
 
 	// For each repo within a target organization or user targeted in GitHub
@@ -89,8 +91,13 @@ func main() {
 		if err != nil {
 			println("error with Plain Clone")
 			println("repoName: " + repoName)
+			err = os.RemoveAll("./" + repoName)
+			if err != nil {
+				println("error cleaning up directories")
+			}
 			break
 		}
+
 		if err == nil {
 
 			w, _ := r.Worktree()
@@ -118,7 +125,7 @@ func main() {
 				err = nil
 			}
 
-			_, err = w.Add(payloadDir)
+			_, err = w.Add(".")
 			if err != nil {
 				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
 				println(payloadDir)
@@ -142,18 +149,19 @@ func main() {
 			})
 			if err != nil {
 				println("Failed to push to target repository")
-				println(err)
 				err = nil
 			}
 
-		} else { println("error with clone")}
+		} else {
+			println("error with clone")
+		}
 
 		//make PR
 		err = github.PullRequest(github.CreatePullRequestPayload{
 			Title: commitBranch,
 			Head:  commitBranch,
 			Base:  *repositories[i].DefaultBranch,
-			Body: prDescription,
+			Body:  prDescription,
 		}, targetOrg, repoName, token)
 		if err != nil {
 			println("error with pull")
