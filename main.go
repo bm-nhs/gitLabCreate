@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"goGitBack/copy"
-	"goGitBack/github"
+	"gogi/copy"
+	"gogi/github"
 	"os"
 
 	"github.com/go-git/go-git/v5"
