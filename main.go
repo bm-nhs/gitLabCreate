@@ -88,7 +88,7 @@ func main() {
 			URL: url,
 		})
 		if err != nil {
-			println("error with Plain Clone")
+			println("error with Plain Clone - make sure you have cleaned up any repositories in this dir")
 			println("repoName: " + repoName)
 			err = os.RemoveAll("./" + repoName)
 			if err != nil {
@@ -124,7 +124,7 @@ func main() {
 				err = nil
 			}
 
-			_, err = w.Add(payloadDir)
+			_, err = w.Add(".")
 			if err != nil {
 				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
 				println(payloadDir)
