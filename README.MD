@@ -10,20 +10,20 @@ This repository bulk adds a payload into all repositories owned by a user or org
 
 ```export PATH=$PATH:/usr/local/go/bin```
 ## How to run: 
-##* Clone repository
+## * Clone repository
 	```git clone https://github.com/bm-nhs/gogi```
-##* Build binary
+## * Build binary
 	```go build```
-##* Create .env file from .envExample
+## * Create .env file from .envExample
 	```mv .envExample .env```	
 
-	### Enviroment Vars
+## Enviroment Vars
         export githubPAT = gitHub-auth-token
         targetOrg = org-alias
 	payloadDir = ./path/to/payload
         commitBranch = name-of-new-branch
 	prDescription = "Body of the PR request. Put something descriptive here"
-##* Execute script
+## * Execute script
 	```./gogi```
 ## Query GitHub API for all repositories within an organization:
 ```
