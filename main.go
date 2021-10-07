@@ -107,7 +107,8 @@ func main() {
 				println(":(")
 
 			}
-			target := "./" + repoName
+
+			copy.Copy(payload, target)
 			err = copy.Copy(payloadDir, target)
 			if err != nil {
 				println("failed to copy payload to target repository make sure you are targeting the correct directory")
@@ -115,20 +116,23 @@ func main() {
 				println("target: " + target)
 				err = nil
 			}
-			_, err = w.Add(".")
+
+			w.Add(payloadDir)
 			if err != nil {
 				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
 				println(payloadDir)
 				err = nil
 			}
-			_, err = w.Commit("Added Payload", &git.CommitOptions{
+
+			w.Commit("Added Payload", &git.CommitOptions{
 				All: true,
 			})
 			if err != nil {
 				println("Failed to commit targeted payload")
 				err = nil
 			}
-			err = r.Push(&git.PushOptions{
+
+			r.Push(&git.PushOptions{
 				RemoteName: "origin",
 				Auth: &http.BasicAuth{
 					Username: "2",
@@ -144,17 +148,17 @@ func main() {
 		} else { println("error with clone")}
 
 		//make PR
-		payload := github.CreatePullRequestPayload{
+		err = github.PullRequest(github.CreatePullRequestPayload{
 			Title: commitBranch,
 			Head:  commitBranch,
 			Base:  *repositories[i].DefaultBranch,
 			Body: prDescription,
-		}
-		err = github.PullRequest(payload, targetOrg, repoName, token)
+		}, targetOrg, repoName, token)
 		if err != nil {
 			println("error with pull")
 			println("repoName: " + repoName)
 		}
+
 		//clean up
 		err = os.RemoveAll("./" + repoName)
 		if err != nil {
