@@ -124,7 +124,7 @@ func main() {
 				err = nil
 			}
 
-			_, err = w.Add(".")
+			_, err = w.Add(payloadDir)
 			if err != nil {
 				println("failed to GIT Add payload to target repository make sure you are targeting the correct directory")
 				println(payloadDir)
