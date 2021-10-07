@@ -27,7 +27,7 @@ func main() {
 	token := os.Getenv("githubPAT")
 	targetOrg := os.Getenv("targetOrg")
 	prDescription := os.Getenv("prDescription")
-	branchName := os.Getenv("commitBranch")
+	commitBranch := os.Getenv("commitBranch")
 	payloadDir := os.Getenv("payloadDir")
 	// Initialize oauth connection so we can grab a list of all repos in target org
 	ctx := context.Background()
@@ -93,7 +93,7 @@ func main() {
 
 			w, _ := r.Worktree()
 			headRef, _ := r.Head()
-			bt := branchTarget(branchName)
+			bt := branchTarget(commitBranch)
 			ref := plumbing.NewHashReference(plumbing.ReferenceName(bt), headRef.Hash())
 			err = r.Storer.SetReference(ref)
 			if err != nil {
@@ -145,8 +145,8 @@ func main() {
 
 		//make PR
 		payload := github.CreatePullRequestPayload{
-			Title: branchName,
-			Head:  branchName,
+			Title: commitBranch,
+			Head:  commitBranch,
 			Base:  *repositories[i].DefaultBranch,
 			Body: prDescription,
 		}
